@@ -1,7 +1,7 @@
 go-jst
 ======
 
-JST -- short for **_JS_**ON **_T_**ables -- is a json formatter that produces tabular data, aligned for pretty printing and pleasant reading.
+JST -- short for ***JS***ON ***T***ables -- is a json formatter that produces tabular data, aligned for pretty printing and pleasant reading.
 
 JST is plain ol' json, and leans in on the non-semantic whitespace to produce aligned, columnar output.
 These table-like views of data are human-friendly, and easy to skim.
