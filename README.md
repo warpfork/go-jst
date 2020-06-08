@@ -11,7 +11,7 @@ Let's see it!
 
 This picture is a side-by-side comparison with [`jq`](https://stedolan.github.io/jq/) output:
 
-// TODO img
+![](docs/example.png)
 
 A table-like format means much more information can fit into the same two-dimensional space.
 The columnar layout makes it easier to compare the same field across multiple objects.
