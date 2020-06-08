@@ -1,9 +1,12 @@
 go-jst
 ======
 
-JSON Tables (or JST or for short) is a serializer that emits plain ol' json, while simultaneously leaning in on the insignificant whitespace to nice, columnar alignment that's human-friendly and easy to skim.  It still parses as completely regular json, with any unmodified- off-the-shelf json parser.
+JST -- **JS**ON **T**ables -- is a json marshaller and unmarshaller for pretty printing and pleasant reading.
 
-JST -- **JS**ON **T**ables -- a json marshaller and unmarshaller for pretty printing and pleasant reading.
+JST is plain ol' json, while simultaneously leaning in on the non-semantic whitespace to produce aligned, columnar output.
+These table-like views of data are human-friendly, and easy to skim.
+(If you've used `column -t` before in the shell: it's like that, but structurally aware of JSON.)
+This output still parses as completely regular json, with any unmodified off-the-shelf json parser.
 
 
 Let's see it!
@@ -27,9 +30,9 @@ By default, JST is based entirely on shameless (but effective) heuristics.  It's
 
 (Okay, it *will* be configurable.  This is a hobby project -- it does what I need it to do, when I need it.  "PRs welcome.")
 
-You can read more about the heuristics TODO:HERE.
+You can read more about the heuristics in [docs/structure-detection](docs/structure-detection.md).
 
-You can read more about the configuration mechanisms TODO:HERE.
+You can read more about the configuration mechanisms in [docs/configuration](docs/configuration.md).
 
 
 Are there caveats?
@@ -58,6 +61,15 @@ which inherently requires two passes over the data: one to find the sizes, and a
 
 Overall, I'd consider using this on things like formatting (config files, or test fixture data files, etc); or rapid prototyping UI; things like that.
 Be judicious about putting it in a situation that's going to handle totally unbounded user input.
+
+
+Known Bugs
+----------
+
+The size-computing functions used for computing column alignment don't correctly handle multi-byte characters, nor graphemes.
+They will generally over-estimate the size of these things, which causes too little spacing to be added during aligned printing.
+
+See also [caveats](#are-there-caveats) for things that aren't bugs, but are still limitations you probably want to know about.
 
 
 License
