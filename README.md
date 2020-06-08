@@ -1,12 +1,15 @@
 go-jst
 ======
 
-JST -- **JS**ON **T**ables -- is a json marshaller and unmarshaller for pretty printing and pleasant reading.
+JST -- short for **_JS_**ON **_T_**ables -- is a json formatter that produces tabular data, aligned for pretty printing and pleasant reading.
 
-JST is plain ol' json, while simultaneously leaning in on the non-semantic whitespace to produce aligned, columnar output.
+JST is plain ol' json, and leans in on the non-semantic whitespace to produce aligned, columnar output.
 These table-like views of data are human-friendly, and easy to skim.
 (If you've used `column -t` before in the shell: it's like that, but structurally aware of JSON.)
-This output still parses as completely regular json, with any unmodified off-the-shelf json parser.
+
+JST output still parses as completely regular json, with any unmodified off-the-shelf json parser.
+
+JST can be fed any json data as input, and will use [heuristics](docs/structure-detection.md) to "do the right thing" and present it well.
 
 
 Let's see it!
