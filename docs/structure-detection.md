@@ -18,20 +18,20 @@ you should be able to understand what JST is doing and how to structure data so 
 
 Lists can be turned into column-aligned tables:
 
-	- Every time there's a list, and the first entry is a map, we'll try to treat it as a table.
-	- Every time a map in that list starts with the same first key as the first map did, it's a table row.
-	- Every thing that's a table row will be buffered, and we try to fit each key into a table column.
-	- (FUTURE) You can manually specify keys that should be excluded from columns; these will be shifted to the end and packed tightly.
-	- We'll store the size of the widest value for each column.  We'll need to do this over every row so we can align output spacing.
-	- If there's a map in the list that doesn't start with the same first key, it's a table exclusion, and gets formatted densely.
-	- If a map has a value that's a list, we attempt to apply this whole ruleset over again from the top.
-	- If a table is detected, we'll print the key on its own new line, slightly indented, together with the list open.  Then, emit the table on subsequent further indented lines.
+- Every time there's a list, and the first entry is a map, we'll try to treat it as a table.
+- Every time a map in that list starts with the same first key as the first map did, it's a table row.
+- Every thing that's a table row will be buffered, and we try to fit each key into a table column.
+- (FUTURE) You can manually specify keys that should be excluded from columns; these will be shifted to the end and packed tightly.
+- We'll store the size of the widest value for each column.  We'll need to do this over every row so we can align output spacing.
+- If there's a map in the list that doesn't start with the same first key, it's a table exclusion, and gets formatted densely.
+- If a map has a value that's a list, we attempt to apply this whole ruleset over again from the top.
+- If a table is detected, we'll print the key on its own new line, slightly indented, together with the list open.  Then, emit the table on subsequent further indented lines.
 
 Maps can also be turned into column-aligned tables:
 
-	- You have to use additional configuration to engage this: by default, only lists trigger table mode.
-	- The search for table rows begins anew with each map value.  The map keys form a defacto first column.
-	- Thereafter, all the rules for handling each table row is the same the rules described above for lists.
+- You have to use additional configuration to engage this: by default, only lists trigger table mode.
+- The search for table rows begins anew with each map value.  The map keys form a defacto first column.
+- Thereafter, all the rules for handling each table row is the same the rules described above for lists.
 
 
 ### demo
