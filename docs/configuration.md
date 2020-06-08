@@ -12,6 +12,8 @@ But... there's some distance to go on this.
 
 Check out the `jst.Color` type -- it's a field you can set in the `jst.Config` object, which in turn you can provide as an argument to the `MarshalConfigured` function.
 
+See the [colors](colors.md) documentation for more info about color codes.
+
 By default, JST output does no coloring.  You can configure it to use ANSI color codes by filling in this structure, though.
 
 Currently it is only possible to highlight keys; in the future we want to support more kinds of highlighting.

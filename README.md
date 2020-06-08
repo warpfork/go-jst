@@ -38,6 +38,15 @@ You can read more about the heuristics in [docs/structure-detection](docs/struct
 You can read more about the configuration mechanisms in [docs/configuration](docs/configuration.md).
 
 
+It's really just JSON.
+----------------------
+
+You can pipe JST output straight to any other program that processes JSON data.
+You can pipe JST output into [`jq`](https://stedolan.github.io/jq/), for example!
+
+(If using JST in [colorized](docs/colors.md) mode, you might need to filter the color codes back out.)
+
+
 Are there caveats?
 ------------------
 
