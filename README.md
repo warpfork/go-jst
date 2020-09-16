@@ -67,7 +67,7 @@ this depends a lot on how your terminal handles soft wrapping (or if it's clever
 There's only so much that can be done when we're doing plain text presentation and you've got more data than the screen can hold.
 (There's also support for kicking some "columns" to their own line (like sub-tables automatically do), but it requires configuration.)
 
-JST is not meant for being pretty, not maximizing throughput.  It also can't stream.
+JST is meant for being pretty, not maximizing throughput.  It also can't stream.
 (You can't *do* columnar layout until you've seen how big all the columns have to be,
 which inherently requires two passes over the data: one to find the sizes, and another to do the aligned printing.)
 
