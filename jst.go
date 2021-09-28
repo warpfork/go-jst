@@ -37,14 +37,13 @@ import (
 	"bytes"
 	"io"
 
-	"github.com/polydawn/refmt/json"
-
-	ipld "github.com/ipld/go-ipld-prime"
 	"github.com/ipld/go-ipld-prime/codec/dagjson"
-	basicnode "github.com/ipld/go-ipld-prime/node/basic"
+	"github.com/ipld/go-ipld-prime/codec/json"
+	"github.com/ipld/go-ipld-prime/datamodel"
+	"github.com/ipld/go-ipld-prime/node/basicnode"
 )
 
-func Marshal(n ipld.Node, w io.Writer) error {
+func Marshal(n datamodel.Node, w io.Writer) error {
 	ctx := state{
 		cfg: Config{
 			Indent: []byte{' ', ' '},
@@ -59,7 +58,7 @@ func Marshal(n ipld.Node, w io.Writer) error {
 	return marshal(&ctx, n, w)
 }
 
-func MarshalConfigured(cfg Config, n ipld.Node, w io.Writer) error {
+func MarshalConfigured(cfg Config, n datamodel.Node, w io.Writer) error {
 	ctx := state{
 		cfg: cfg,
 	}
@@ -75,7 +74,7 @@ func MarshalConfigured(cfg Config, n ipld.Node, w io.Writer) error {
 
 type state struct {
 	cfg    Config
-	path   []ipld.PathSegment // TODO replace with PathBuffer... once you, you know, write it.
+	path   []datamodel.PathSegment // TODO replace with PathBuffer... once you, you know, write it.
 	stack  []step
 	tables map[tableGroupID]*table
 	spare  bytes.Buffer
@@ -168,17 +167,17 @@ func (tab *table) Finalize() {
 	var buf bytes.Buffer
 	for _, cn := range cols {
 		buf.Reset()
-		dagjson.Marshal(basicnode.NewString(string(cn)), json.NewEncoder(&buf, json.EncodeOptions{})) // FIXME this would be a lot less irritating if we had more plumbing access to the json encoding -- we want to encode exactly one string into a buffer, it literally can't error.
-		tab.keySize[cn] = buf.Len()                                                                   // FIXME this is ignoring charsets, renderable glyphs, etc at present.
+		json.Encode(basicnode.NewString(string(cn)), &buf) // FIXME this would be a lot less irritating if we had more plumbing access to the json encoding -- we want to encode exactly one string into a buffer, it literally can't error.
+		tab.keySize[cn] = buf.Len()                        // FIXME this is ignoring charsets, renderable glyphs, etc at present.
 	}
 }
 
-func (tab *table) IsRow(n ipld.Node) bool {
+func (tab *table) IsRow(n datamodel.Node) bool {
 	// FUTURE: this entire function's behavior might be *heavily* redirected by config.
 	//  Having it attached to the table struct might not even be sensible by the end of the day.
 	//  Alternately: unclear if we need this function at all, if the "trailing" and "ownLine" entryStyle can simply carry the day for all userstories like comments and etc.
-	switch n.ReprKind() {
-	case ipld.ReprKind_Map:
+	switch n.Kind() {
+	case datamodel.Kind_Map:
 		if n.Length() < 1 {
 			return false
 		}
@@ -188,7 +187,7 @@ func (tab *table) IsRow(n ipld.Node) bool {
 			return true
 		}
 		return columnName(ks) == tab.cols[0]
-	case ipld.ReprKind_List:
+	case datamodel.Kind_List:
 		// FUTURE: maybe this could be 'true', but it requires very different logic.  And it's not in my first-draft pareto priority choices.
 		return false
 	default:
@@ -199,19 +198,19 @@ func (tab *table) IsRow(n ipld.Node) bool {
 // Discerns if the given node starts a table, and if so, what string to use as tableGroupID for cross-table alignment.
 // By default, the tableGroupID is just the first key in the first row.
 // (We might extend the tableGroupID heuristic later, perhaps to also include the last key we saw on the path here, etc).
-func peekMightBeTable(ctx *state, n ipld.Node) (bool, tableGroupID) {
+func peekMightBeTable(ctx *state, n datamodel.Node) (bool, tableGroupID) {
 	// FUTURE: might need to apply a selector or other rules from ctx.cfg to say additonal "no"s.
 	// FUTURE: the ctx.cfg can also override what the tableGroupID is.
-	switch n.ReprKind() {
-	case ipld.ReprKind_Map:
+	switch n.Kind() {
+	case datamodel.Kind_Map:
 		// TODO: maps can definitely be tables!  but gonna come back to this.  and by default, they're not.
 		return false, ""
-	case ipld.ReprKind_List:
+	case datamodel.Kind_List:
 		if n.Length() < 1 {
 			return false, ""
 		}
-		n0, _ := n.LookupIndex(0)
-		if n0.ReprKind() != ipld.ReprKind_Map {
+		n0, _ := n.LookupByIndex(0)
+		if n0.Kind() != datamodel.Kind_Map {
 			return false, ""
 		}
 		if n0.Length() < 1 {
@@ -227,11 +226,11 @@ func peekMightBeTable(ctx *state, n ipld.Node) (bool, tableGroupID) {
 // Applies itself and other stride functions recursively (have to, because:
 //  some row values might themselves be tables,
 //   which removes them from the column flow and changes our size counting).
-func stride(ctx *state, n ipld.Node) error {
-	switch n.ReprKind() {
-	case ipld.ReprKind_Map:
+func stride(ctx *state, n datamodel.Node) error {
+	switch n.Kind() {
+	case datamodel.Kind_Map:
 		panic("todo")
-	case ipld.ReprKind_List:
+	case datamodel.Kind_List:
 		return strideList(ctx, n)
 	default:
 		// There's never anything we need to record for scalars that their parents don't already note.
@@ -239,7 +238,7 @@ func stride(ctx *state, n ipld.Node) error {
 	}
 }
 
-func strideList(ctx *state, listNode ipld.Node) error {
+func strideList(ctx *state, listNode datamodel.Node) error {
 	isTable, tgid := peekMightBeTable(ctx, listNode)
 	if !isTable {
 		return nil
@@ -282,11 +281,11 @@ func strideList(ctx *state, listNode ipld.Node) error {
 	return nil
 }
 
-func marshal(ctx *state, n ipld.Node, w io.Writer) error {
-	switch n.ReprKind() {
-	case ipld.ReprKind_Map:
+func marshal(ctx *state, n datamodel.Node, w io.Writer) error {
+	switch n.Kind() {
+	case datamodel.Kind_Map:
 		panic("todo")
-	case ipld.ReprKind_List:
+	case datamodel.Kind_List:
 		return marshalList(ctx, n, w)
 	default:
 		return marshalPlain(ctx, n, w)
@@ -296,17 +295,15 @@ func marshal(ctx *state, n ipld.Node, w io.Writer) error {
 // this function is probably a placeholder.
 // It doesn't colorize or anything else.  To replace it with something clever that does,
 // we'll have to tear deeper into the plumbing level of json serializers; will, but later.
-func marshalPlain(ctx *state, n ipld.Node, w io.Writer) error {
-	err := dagjson.Marshal(n, json.NewEncoder(w, json.EncodeOptions{
-		// never indent here: these values will always end up being emitted mid-line.
-	}))
+func marshalPlain(ctx *state, n datamodel.Node, w io.Writer) error {
+	err := dagjson.Encode(n, w) // never indent here: these values will always end up being emitted mid-line.
 	if err != nil {
 		return recordErrorPosition(ctx, err)
 	}
 	return nil
 }
 
-func marshalList(ctx *state, listNode ipld.Node, w io.Writer) error {
+func marshalList(ctx *state, listNode datamodel.Node, w io.Writer) error {
 	isTab, tgid := peekMightBeTable(ctx, listNode)
 	if !isTab {
 		return marshalPlain(ctx, listNode, w)
@@ -334,8 +331,8 @@ func marshalList(ctx *state, listNode ipld.Node, w io.Writer) error {
 	w.Write([]byte{']'})
 	return nil
 }
-func marshalListValue(ctx *state, tab *table, row ipld.Node, w io.Writer) error {
-	if row.ReprKind() != ipld.ReprKind_Map {
+func marshalListValue(ctx *state, tab *table, row datamodel.Node, w io.Writer) error {
+	if row.Kind() != datamodel.Kind_Map {
 		// TODO make this a lot more open... scalars aren't exactly "rows" for example but we can surely print them just fine.
 		panic("table rows can only be maps at present")
 	}
@@ -378,7 +375,7 @@ func marshalListValue(ctx *state, tab *table, row ipld.Node, w io.Writer) error 
 		if i > lastColThisRow {
 			break
 		}
-		v, err := row.LookupString(string(col))
+		v, err := row.LookupByString(string(col))
 		if v == nil {
 			w.Write(bytes.Repeat([]byte{' '}, tab.keySize[col]))
 			w.Write(bytes.Repeat([]byte{' '}, 4)) // colonAfterKey, spaceAfterKey, commaAfterValue, spaceAfterValue.
@@ -442,7 +439,7 @@ func marshalListValue(ctx *state, tab *table, row ipld.Node, w io.Writer) error 
 		defer func() { ctx.indent-- }()
 	}
 	for i, col := range tab.ownLine {
-		v, err := row.LookupString(string(col))
+		v, err := row.LookupByString(string(col))
 		if v == nil {
 			continue
 		}
@@ -466,11 +463,11 @@ func marshalListValue(ctx *state, tab *table, row ipld.Node, w io.Writer) error 
 	return nil
 }
 
-func emitKey(ctx *state, k ipld.Node, w io.Writer) error {
+func emitKey(ctx *state, k datamodel.Node, w io.Writer) error {
 	if ctx.cfg.Color.Enabled {
 		w.Write(ctx.cfg.Color.KeyHighlight)
 	}
-	if err := dagjson.Marshal(k, json.NewEncoder(w, json.EncodeOptions{})); err != nil {
+	if err := dagjson.Encode(k, w); err != nil {
 		return recordErrorPosition(ctx, err)
 	}
 	if ctx.cfg.Color.Enabled {

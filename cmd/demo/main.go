@@ -1,12 +1,12 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/ipld/go-ipld-prime/codec/dagjson"
-	basicnode "github.com/ipld/go-ipld-prime/node/basic"
+	"github.com/ipld/go-ipld-prime/node/basicnode"
 
 	"github.com/warpfork/go-jst"
 )
@@ -23,8 +23,8 @@ func main() {
 		    {"widget": "irridescent",   "property": "yes"},
 		  ]}
 	]`
-	nb := basicnode.Style.Any.NewBuilder()
-	if err := dagjson.Decoder(nb, bytes.NewBufferString(fixture)); err != nil {
+	nb := basicnode.Prototype.Any.NewBuilder()
+	if err := dagjson.Decode(nb, strings.NewReader(fixture)); err != nil {
 		panic(err)
 	}
 	n := nb.Build()
